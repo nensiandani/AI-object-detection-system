@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Neural Eye Pro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .images { display: flex; gap: 20px; flex-wrap: wrap; }
+        .images div { flex: 1; min-width: 300px; }
+        img, video { max-width: 100%; border-radius: 8px; border: 2px solid #3498db; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #3498db; color: white; }
+        .error-msg { color: red; background: #ffdada; padding: 15px; border: 1px solid red; border-radius: 5px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<header>Neural Eye Pro AI Vision System</header>
+
+<div class="container">
+    <div class="sidebar">
+        <form method="POST" enctype="multipart/form-data" action="/">
+            <h3>Detection Mode</h3>
+            <select name="mode" id="modeSelect" onchange="changeInputType()">
+                <option value="image" {% if mode == 'image' %}selected{% endif %}>Image Detection</option>
+                <option value="video" {% if mode == 'video' %}selected{% endif %}>Video Detection</option>
+                <option value="webcam" {% if mode == 'webcam' %}selected{% endif %}>Live Webcam</option>
+            </select>
+            <br><br>
+            <input type="file" name="file" id="fileInput" accept="image/*">
+            <button type="submit">Run Detection</button>
+        </form>
+    </div>
+
+    <div class="main">
+        {% if mode == "image" and result_img %}
+        <div class="images">
+            <div><h3>Input Image</h3><img src="{{ url_for('static', filename='uploads/' + input_img) }}"></div>
+            <div><h3>Output Detection</h3><img src="{{ url_for('static', filename='uploads/' + result_img) }}"></div>
+        </div>
+        {% endif %}
+
+        {% if mode == "video" and video_file %}
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+            
+            <div style="flex: 1; min-width: 300px; text-align: center;">
+                <h3 style="color: #2c3e50;">Original Input Video</h3>
+                <video width="100%" controls autoplay muted loop style="border-radius: 8px; border: 2px solid #3498db;">
+                    <source src="{{ url_for('static', filename='uploads/' + video_file) }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <div style="flex: 1; min-width: 300px; text-align: center;">
+                <h3 style="color: #2c3e50;">Object Detection (YOLO)</h3>
+                <img src="{{ url_for('video_feed', filename=video_file) }}" width="100%" style="border-radius: 8px; border: 2px solid #e74c3c;">
+            </div>
+
+        </div>
+        {% endif %}
+        
+        {% if mode == "webcam" %}
+        <div class="webcam-container">
+            <h3>Live Webcam Feed</h3>
+            <img src="{{ url_for('video_feed', filename='webcam') }}" width="100%" 
+                 onerror="document.getElementById('webcam-error').style.display='block'; this.style.display='none';">
+            <div id="webcam-error" class="error-msg">⚠️ Your camera is not working or not found. Please check connection.</div>
+        </div>
+        {% endif %}
+
+        <hr>
+        {% if counts %}
+            <h3>Detected Objects Count</h3>
+            <table>
+                <tr><th>Object Name</th><th>Count</th></tr>
+                {% for k, v in counts.items() %}
+                <tr><td>{{ k }}</td><td><strong>{{ v }}</strong></td></tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+</div>
+
+<footer>Neural Eye Pro © 2026 AI Vision System</footer>
+
+<script>
+function changeInputType() {
+    var mode = document.getElementById("modeSelect").value;
+    var fileInput = document.getElementById("fileInput");
+    fileInput.style.display = (mode == "webcam") ? "none" : "block";
+    fileInput.accept = (mode == "image") ? "image/*" : "video/*";
+}
+window.onload = changeInputType;
+</script>
+
+</body>
+</html>
